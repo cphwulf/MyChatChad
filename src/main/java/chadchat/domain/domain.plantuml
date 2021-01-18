@@ -1,0 +1,192 @@
+@startuml
+
+title __DOMAIN's Class Diagram__\n
+
+  namespace chadchat.domain {
+    class chadchat.domain.Message {
+        - id : int
+        - msg : String
+        - time : LocalDateTime
+        - userID : int
+        + Message()
+        + getId()
+        + getMsg()
+        + getTime()
+        + getUserID()
+        + toString()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    interface chadchat.domain.MessageFactory {
+        {abstract} + createMessage()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    interface chadchat.domain.MessageRepository {
+        {abstract} + findAllMessages()
+        {abstract} + findMessageFrom()
+        {abstract} + findSomeMessages()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    class chadchat.domain.User {
+        {static} - PASSWORD_FACTORY : SecretKeyFactory
+        {static} - PASSWORD_ITERATIONS : int
+        {static} - PASSWORD_LENGTH : int
+        - createdAt : LocalDateTime
+        - id : int
+        - name : String
+        - salt : byte[]
+        - secret : byte[]
+        + User()
+        {static} + byteArrayToHex()
+        {static} + calculateSecret()
+        + doesUserExist()
+        {static} + generateSalt()
+        + getId()
+        + getName()
+        + isPasswordCorrect()
+        + toString()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    class chadchat.domain.UserExists {
+        + UserExists()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    interface chadchat.domain.UserFactory {
+        {abstract} + createUser()
+    }
+  }
+  
+
+  namespace chadchat.domain {
+    interface chadchat.domain.UserRepository {
+        {abstract} + findAllUsers()
+        {abstract} + findUser()
+        {abstract} + findUser()
+    }
+  }
+  
+
+  namespace chadchat.api {
+    class chadchat.api.ChadChat {
+        - activeUsers : List<User>
+        {static} - instance : ChadChat
+        - notifiers : List<MessageNotifier>
+        + createUser()
+        + findAllMessages()
+        + findMessageFrom()
+        + findSomeMessages()
+        + findUser()
+        + getActiveUsers()
+        {static} + getInstance()
+        + getUsers()
+        + login()
+        + logout()
+        + register()
+        + sendMessage()
+        - ChadChat()
+    }
+  }
+
+
+  namespace chadchat.api {
+    interface chadchat.api.ChadChat.MessageNotifier {
+        {abstract} + notifyNewMessage()
+    }
+  }
+
+
+  namespace chadchat.api {
+    interface chadchat.api.ChatRepository {
+    }
+  }
+
+
+  namespace chadchat.api {
+    class chadchat.api.InvalidPassword {
+    }
+  }
+
+
+
+  namespace chadchat.entries {
+    class chadchat.entries.Migrate {
+        {static} + main()
+        {static} + runMigration()
+        {static} + runMigrations()
+    }
+  }
+
+
+  namespace chadchat.entries {
+    class chadchat.entries.Server {
+        {static} + main()
+    }
+  }
+
+namespace chadchat.infrastructure {
+    class chadchat.infrastructure.Database {
+        {static} - DB_URL : String
+        {static} - JDBC_DRIVER : String
+        {static} - USER : String
+        {static} - version : int
+        + Database()
+        + createMessage()
+        + createUser()
+        + findAllMessages()
+        + findAllUsers()
+        + findMessage()
+        + findMessageFrom()
+        + findSomeMessages()
+        + findUser()
+        + findUser()
+        {static} + getConnection()
+        {static} + getCurrentVersion()
+        {static} + getVersion()
+        - loadMessage()
+        - loadUser()
+    }
+  }
+
+
+namespace chadchat.ui {
+    class chadchat.ui.Protocol {
+        - in : Scanner
+        - messages : BlockingQueue<String>
+        - out : PrintWriter
+        + Protocol()
+        + addMessage()
+        + findUser()
+        + handleUserInput()
+        + notifyNewMessage()
+        + run()
+        - getHelpMessage()
+        - getLoginScreen()
+    }
+  }
+
+
+  chadchat.ui.Protocol .up.|> chadchat.api.ChadChat.MessageNotifier
+  chadchat.ui.Protocol o-- chadchat.api.ChadChat : chadchat
+  chadchat.api.ChatRepository o-- chadchat.domain.MessageRepository
+  chadchat.domain.MessageRepository o-- chadchat.domain.MessageFactory
+  chadchat.api.ChatRepository o-- chadchat.domain.UserRepository
+  chadchat.domain.UserRepository o-- chadchat.domain.UserFactory
+  chadchat.api.ChadChat o-- chadchat.api.ChatRepository : users
+  chadchat.api.ChadChat +-down- chadchat.api.ChadChat.MessageNotifier
+  chadchat.infrastructure.Database .up.|> chadchat.api.ChatRepository
+
+@enduml
